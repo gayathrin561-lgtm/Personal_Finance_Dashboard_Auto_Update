@@ -1,0 +1,220 @@
+{
+  "name": "Personal Finance Dashboard Auto Update",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 21
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6547a7a6-414b-4413-b1eb-cedd407786ef",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE",
+          "mode": "list",
+          "cachedResultName": "personal finance dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a417f638-c583-4262-a7f8-b973e85c61b9",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xMl2kSbLAsdIBM9M",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all();\n\nlet income = 0;\nlet expenses = 0;\n\nfor (const item of rows) {\n  const type = String(item.json.Type || \"\")\n    .trim()\n    .toLowerCase();\n\n  const amount = Number(\n    String(item.json.Amount || 0).replace(/[,₹]/g, \"\")\n  );\n\n  if (!Number.isFinite(amount)) {\n    continue;\n  }\n\n  if (type === \"income\") {\n    income += amount;\n  } else if (type === \"expense\") {\n    expenses += amount;\n  }\n}\n\nconst savings = income - expenses;\n\nreturn [\n  {\n    json: {\n      Total_Income: income,\n      Total_Expenses: expenses,\n      Total_Savings: savings,\n      Last_Updated: new Date().toISOString()\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "2a99a73c-ede4-40a6-983f-ee3a3f075681",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE",
+          "mode": "list",
+          "cachedResultName": " Dashboard",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1814018904,
+          "mode": "list",
+          "cachedResultName": "Sheet2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1921wxbb5CA9MBpZCfXwuTGEJNARLvIjBNt7r1y9G4sE/edit#gid=1814018904"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "summary",
+            "Last_updated": "={{ $json.Last_Updated }}",
+            "Total_income": "={{ $json.Total_Income }}",
+            "Total_Expenses": "={{ $json.Total_Expenses }}",
+            "Total_Savings": "={{ $json.Total_Savings }}"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_updated",
+              "displayName": "Last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total_income",
+              "displayName": "Total_income",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total_Expenses",
+              "displayName": "Total_Expenses",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total_Savings",
+              "displayName": "Total_Savings",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        0
+      ],
+      "id": "242867c1-add3-46ec-aa6c-ad81135c864a",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "xMl2kSbLAsdIBM9M",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": -1,
+    "availableInMCP": false
+  },
+  "versionId": "2d38e9a6-4bbf-4e56-b226-d5931d0e487d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "afb0618669e3329bf0744ae75da9897a5acea81d7fd02c346306fef465944d91"
+  },
+  "nodeGroups": [],
+  "id": "0yfMeLHFp3LbIuzG",
+  "tags": []
+}
